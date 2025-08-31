@@ -39,6 +39,7 @@ install(TARGETS
 # Launches
 install(DIRECTORY
    launch
+   rviz
    src
    DESTINATION share/${PROJECT_NAME}
  )
