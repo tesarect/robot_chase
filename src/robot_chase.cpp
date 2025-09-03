@@ -19,6 +19,11 @@ public:
         velocity_publisher_ = this->create_publisher<geometry_msgs::msg::Twist>(
             "/rick/cmd_vel", 10);
         
+        // // Subscribe to Morty's velocity commands to detect circular motion
+        // morty_vel_subscriber_ = this->create_subscription<geometry_msgs::msg::Twist>(
+        //     "/morty/cmd_vel", 10,
+        //     std::bind(&RobotChase::morty_velocity_callback, this, std::placeholders::_1));
+        
         // Create timer for periodic chase updates (10 Hz)
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(100),
@@ -31,8 +36,7 @@ public:
         // Safety limits
         max_linear_vel_ = 0.5;   // Maximum linear velocity (m/s)
         max_angular_vel_ = 1.0;  // Maximum angular velocity (rad/s)
-        // max_angular_vel_ = 2.0;  // Maximum angular velocity (rad/s)
-        min_distance_ = 0.359;     // Stop distance with a bump - (chassis diameter - 0.01 )
+        min_distance_ = 0.359;     // Stop distance with a bump - (fractionally lesser that chassis diameter)
         
         RCLCPP_INFO(this->get_logger(), "Robot Chase node started. Rick will follow Morty!");
     }
@@ -69,19 +73,16 @@ private:
         if (error_distance > min_distance_) {
             double linear_vel;
             double angular_vel;
-            if (error_distance > 0.7) {
-                // Linear velocity: proportional to distance error
-                linear_vel = ( kp_distance_ + 0.09 ) * error_distance;
 
-                // Angular velocity: proportional to angle error  
+            if (error_distance > 0.7) {
+                // Linear & Angular velocity: when farther apart
+                linear_vel = ( kp_distance_ + 0.09 ) * error_distance;
                 angular_vel = (kp_yaw_ * 0.01 ) * error_yaw;
                 // angular_vel = (kp_yaw_ * kp_yaw_ ) * error_yaw;
             }
             else {
-                // Linear velocity: proportional to distance error
+                // Linear & Angular velocity: when nearer
                 linear_vel = kp_distance_ * error_distance;
-
-                // Angular velocity: proportional to angle error  
                 angular_vel = kp_yaw_ * error_yaw;
 
                 // Apply velocity limits
