@@ -1,0 +1,38 @@
+cd ~/ros2_ws && rm -rf build/ log/ install/ && colcon build && source install/setup.bash && ros2 launch barista_robot_description barista_two_robots.launch.py
+
+cd ~/ros2_ws && rm -rf build/ log/ install/ && colcon build && source install/setup.bash && ros2 launch barista_robot_description testing_one.launch.py
+
+ros2 run robot_state_publisher robot_state_publisher --ros-args -p robot_description:="$(xacro ~/ros2_ws/src/barista_robot_description/xacro/barista_robot_model.xacro robot_name:=rick colour:=Gazebo/Red include_laser:=true)"
+ros2 run joint_state_publisher_gui joint_state_publisher_gui
+ros2 run rviz2 rviz2 &
+
+sudo apt update
+sudo curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo apt update
+sudo apt install ros-humble-rqt-tf-tree
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+ros2 run rqt_tf_tree rqt_tf_tree
+ros2 run rqt_graph
+
+ros2 topic echo /rick/joint_states --once
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/rick/cmd_vel
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap cmd_vel:=/morty/cmd_vel
+
+xacro /home/user/ros2_ws/src/barista_robot_description/xacro/barista_robot_model.urdf.xacro robot_name:=rick colour:=Gazebo/Red include_laser:=true > /home/user/ros2_ws/src/barista_robot_description/output_file.urdf
+
+Run this file to generate rpbot_physics.yaml, which reads the values form the value_history.md file {need to pass in the column name to fetch the values}. and then run the launch file.
+python3 /home/user/ros2_ws/src/barista_robot_description/scripts/generate_physics_prop_yaml.py /home/user/ros2_ws/src/barista_robot_description/config/value_history.md 0 /home/user/ros2_ws/src/barista_robot_description/config/template.yaml /home/user/ros2_ws/src/barista_robot_description/config/robot_physics.yaml Try8
+
+killall -9 gzserver
+killall -9 gzclient   
+
+ros2 pkg create robot_chase --build-type ament_cmake --dependencies nav_msgs tf2 tf2_ros geometry_msgs 
+
+cd ~/ros2_ws && rm -rf build/ log/ install/ && colcon build --packages-up-to robot_chase && source install/setup.bash
+
+ros2 run tf2_ros static_transform_publisher --x 0 --y 0 --z 1 --qx 0 --qy 0 --qz 0 --qw 1 --frame-id world --child-frame-id mystaticturtle
+ros2 run tf2_ros static_transform_publisher --x 0 --y 0 --z 1 --qx 0 --qy 0 --qz 0 --qw 1 --frame-id world --child-frame-id mystaticturtle
+
+cd ~/ros2_ws && rm -rf build/ log/ install/
